@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Voice AI - STT + TTS</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-family:
+        Inter,
+        "Segoe UI",
+        system-ui,
+        sans-serif;
+
+      background: #0f0f1a;
+      color: #e2e2f0;
+
+      padding: 20px;
+    }
+
+    .card {
+      width: 550px;
+      max-width: 100%;
+
+      padding: 45px;
+
+      text-align: center;
+
+      background:
+        rgba(255, 255, 255, 0.04);
+
+      border:
+        1px solid rgba(255, 255, 255, 0.08);
+
+      border-radius: 24px;
+
+      backdrop-filter: blur(20px);
+
+      box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      margin-bottom: 10px;
+
+      font-size: 1.6rem;
+
+      background:
+        linear-gradient(
+          135deg,
+          #a78bfa,
+          #6366f1
+        );
+
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .description {
+      color: #8888a0;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    button {
+      padding: 13px 30px;
+
+      border: none;
+      border-radius: 12px;
+
+      font-size: 15px;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: 0.2s;
+    }
+
+    #startBtn {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #6366f1,
+          #8b5cf6
+        );
+    }
+
+    #startBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 5px 20px
+        rgba(99, 102, 241, 0.4);
+    }
+
+    #stopBtn {
+      color: #c4b5fd;
+
+      background:
+        rgba(255, 255, 255, 0.08);
+
+      border:
+        1px solid
+        rgba(139, 92, 246, 0.3);
+    }
+
+    #stopBtn:hover:not(:disabled) {
+      background:
+        rgba(255, 255, 255, 0.12);
+    }
+
+    button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .voice-container {
+      text-align: left;
+      margin-bottom: 25px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: #8d8da5;
+      margin-bottom: 8px;
+    }
+
+    select {
+      width: 100%;
+
+      padding: 12px 15px;
+
+      border-radius: 12px;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+      color: #e2e2f0;
+
+      font-size: 14px;
+
+      outline: none;
+
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: #6366f1;
+    }
+
+    select option {
+      background: #1a1a2a;
+      color: white;
+    }
+
+    .section {
+      text-align: left;
+      margin-top: 20px;
+    }
+
+    .box {
+      min-height: 80px;
+
+      padding: 15px;
+
+      border-radius: 12px;
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+      color: #d8d8e8;
+
+      line-height: 1.5;
+
+      word-break: break-word;
+    }
+
+    #audioPlayer {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    #downloadBtn {
+      width: 100%;
+      margin-top: 12px;
+
+      color: #c4b5fd;
+
+      background:
+        rgba(255, 255, 255, 0.08);
+
+      border:
+        1px solid
+        rgba(139, 92, 246, 0.3);
+    }
+
+    #downloadBtn:hover:not(:disabled) {
+      background:
+        rgba(255, 255, 255, 0.12);
+    }
+
+    #status {
+      min-height: 25px;
+
+      margin-top: 25px;
+
+      color: #9999b0;
+
+      font-size: 14px;
+    }
+
+    #status.success {
+      color: #4ade80;
+    }
+
+    #status.error {
+      color: #f87171;
+    }
+
+    .pulse {
+      display: inline-block;
+
+      width: 10px;
+      height: 10px;
+
+      margin-right: 8px;
+
+      border-radius: 50%;
+
+      background: #f87171;
+
+      animation:
+        pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+      }
+    }
+
+    .loading {
+      display: inline-block;
+
+      width: 12px;
+      height: 12px;
+
+      margin-right: 8px;
+
+      border:
+        2px solid
+        rgba(255, 255, 255, 0.3);
+
+      border-top-color: #a78bfa;
+
+      border-radius: 50%;
+
+      animation:
+        spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 30px 20px;
+      }
+
+      .controls {
+        gap: 10px;
+      }
+
+      button {
+        padding: 12px 20px;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="card">
+
+    <h1>
+      Voice AI
+    </h1>
+
+    <div class="description">
+      Speak → Speech to Text → Text to Speech
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- TTS VOICE SELECTION -->
+    <!-- ========================= -->
+
+    <div class="voice-container">
+
+      <div class="label">
+        TTS Voice
+      </div>
+
+      <select id="voiceSelect">
+
+        <option value="flux-hannah-en">
+          Hannah
+        </option>
+
+        <option value="flux-kit-en">
+          Kit
+        </option>
+
+        <option value="flux-alexis-en">
+          Alexis
+        </option>
+
+        <option value="flux-cliff-en">
+          Cliff
+        </option>
+
+        <option value="flux-sienna-en">
+          Sienna
+        </option>
+
+        <option value="flux-cole-en">
+          Cole
+        </option>
+
+        <option value="flux-brooke-en">
+          Brooke
+        </option>
+
+        <option value="flux-colin-en">
+          Colin
+        </option>
+
+        <option value="flux-gemma-en">
+          Gemma
+        </option>
+
+        <option value="flux-haley-en">
+          Haley
+        </option>
+
+        <option value="flux-heather-en">
+          Heather
+        </option>
+
+        <option value="flux-miles-en">
+          Miles
+        </option>
+
+        <option value="flux-sean-en">
+          Sean
+        </option>
+
+        <option value="flux-bree-en">
+          Bree
+        </option>
+
+        <option value="flux-brittany-en">
+          Brittany
+        </option>
+
+        <option value="flux-bruce-en">
+          Bruce
+        </option>
+
+        <option value="flux-conor-en">
+          Conor
+        </option>
+
+        <option value="flux-donovan-en">
+          Donovan
+        </option>
+
+        <option value="flux-drew-en">
+          Drew
+        </option>
+
+        <option value="flux-elise-en">
+          Elise
+        </option>
+
+        <option value="flux-jack-en">
+          Jack
+        </option>
+
+        <option value="flux-kai-en">
+          Kai
+        </option>
+
+        <option value="flux-kelsey-en">
+          Kelsey
+        </option>
+
+        <option value="flux-maeve-en">
+          Maeve
+        </option>
+
+        <option value="flux-marcelo-en">
+          Marcelo
+        </option>
+
+        <option value="flux-marcus-en">
+          Marcus
+        </option>
+
+        <option value="flux-meena-en">
+          Meena
+        </option>
+
+        <option value="flux-meghan-en">
+          Meghan
+        </option>
+
+        <option value="flux-naveen-en">
+          Naveen
+        </option>
+
+        <option value="flux-paige-en">
+          Paige
+        </option>
+
+        <option value="flux-priya-en">
+          Priya
+        </option>
+
+        <option value="flux-rufus-en">
+          Rufus
+        </option>
+
+        <option value="flux-sharon-en">
+          Sharon
+        </option>
+
+        <option value="flux-tanner-en">
+          Tanner
+        </option>
+
+        <option value="flux-wade-en">
+          Wade
+        </option>
+
+        <option value="flux-wes-en">
+          Wes
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- RECORDING CONTROLS -->
+    <!-- ========================= -->
+
+    <div class="controls">
+
+      <button id="startBtn">
+        🎙 Start
+      </button>
+
+      <button
+        id="stopBtn"
+        disabled
+      >
+        ⏹ Stop
+      </button>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- TRANSCRIPT -->
+    <!-- ========================= -->
+
+    <div class="section">
+
+      <div class="label">
+        Transcript
+      </div>
+
+      <div
+        id="transcript"
+        class="box"
+      >
+        Your transcript will appear here...
+      </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- AI RESPONSE -->
+    <!-- ========================= -->
+
+    <div class="section">
+
+      <div class="label">
+        AI Response
+      </div>
+
+      <div
+        id="response"
+        class="box"
+      >
+        The response will appear here...
+      </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- AUDIO PLAYER -->
+    <!-- ========================= -->
+
+    <audio
+      id="audioPlayer"
+      controls
+    ></audio>
+
+
+    <!-- ========================= -->
+    <!-- DOWNLOAD -->
+    <!-- ========================= -->
+
+    <button
+      id="downloadBtn"
+      disabled
+    >
+      Download Audio
+    </button>
+
+
+    <!-- ========================= -->
+    <!-- STATUS -->
+    <!-- ========================= -->
+
+    <div id="status">
+      Ready
+    </div>
+
+  </div>
+
+
+  <script>
+
+    /*
+     * ============================
+     * DOM ELEMENTS
+     * ============================
+     */
+
+    const startBtn =
+      document.getElementById("startBtn");
+
+    const stopBtn =
+      document.getElementById("stopBtn");
+
+    const voiceSelect =
+      document.getElementById("voiceSelect");
+
+    const transcriptElement =
+      document.getElementById("transcript");
+
+    const responseElement =
+      document.getElementById("response");
+
+    const audioPlayer =
+      document.getElementById("audioPlayer");
+
+    const downloadBtn =
+      document.getElementById("downloadBtn");
+
+    const status =
+      document.getElementById("status");
+
+
+    /*
+     * ============================
+     * STATE
+     * ============================
+     */
+
+    let recorder = null;
+
+    let mediaStream = null;
+
+    let chunks = [];
+
+    let audioUrl = null;
+
+
+    /*
+     * ============================
+     * STATUS
+     * ============================
+     */
+
+    function setStatus(
+      message,
+      type = ""
+    ) {
+
+      status.className = type;
+
+      status.innerHTML = message;
+
+    }
+
+
+    /*
+     * ============================
+     * START RECORDING
+     * ============================
+     */
+
+    startBtn.onclick = async () => {
+
+      try {
+
+        /*
+         * Ask browser for microphone.
+         */
+
+        mediaStream =
+          await navigator
+            .mediaDevices
+            .getUserMedia({
+              audio: true
+            });
+
+
+        /*
+         * Clear previous recording.
+         */
+
+        chunks = [];
+
+
+        /*
+         * Create MediaRecorder.
+         */
+
+        recorder =
+          new MediaRecorder(
+            mediaStream
+          );
+
+
+        /*
+         * Receive recorded audio chunks.
+         */
+
+        recorder.ondataavailable =
+          (event) => {
+
+            if (
+              event.data &&
+              event.data.size > 0
+            ) {
+
+              chunks.push(
+                event.data
+              );
+
+            }
+
+          };
+
+
+        /*
+         * When recording stops.
+         */
+
+        recorder.onstop =
+          async () => {
+
+            /*
+             * Stop microphone.
+             */
+
+            if (mediaStream) {
+
+              mediaStream
+                .getTracks()
+                .forEach(
+                  (track) => {
+                    track.stop();
+                  }
+                );
+
+            }
+
+
+            /*
+             * Create audio Blob.
+             */
+
+            const audioBlob =
+              new Blob(
+                chunks,
+                {
+                  type:
+                    recorder.mimeType ||
+                    "audio/webm"
+                }
+              );
+
+
+            /*
+             * Send audio to STT.
+             */
+
+            await processAudio(
+              audioBlob
+            );
+
+          };
+
+
+        /*
+         * Start recording.
+         */
+
+        recorder.start();
+
+
+        startBtn.disabled = true;
+
+        stopBtn.disabled = false;
+
+
+        setStatus(
+          '<span class="pulse"></span>Recording...'
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Microphone Error:",
+          error
+        );
+
+        setStatus(
+          "Microphone permission denied or unavailable.",
+          "error"
+        );
+
+      }
+
+    };
+
+
+    /*
+     * ============================
+     * STOP RECORDING
+     * ============================
+     */
+
+    stopBtn.onclick = () => {
+
+      if (
+        !recorder ||
+        recorder.state === "inactive"
+      ) {
+        return;
+      }
+
+
+      recorder.stop();
+
+
+      startBtn.disabled = false;
+
+      stopBtn.disabled = true;
+
+
+      setStatus(
+        '<span class="loading"></span>Processing audio...'
+      );
+
+    };
+
+
+    /*
+     * ============================
+     * STT
+     * ============================
+     */
+
+    async function processAudio(
+      audioBlob
+    ) {
+
+      try {
+
+        setStatus(
+          '<span class="loading"></span>Converting speech to text...'
+        );
+
+
+        /*
+         * Create FormData.
+         */
+
+        const formData =
+          new FormData();
+
+
+        /*
+         * FastAPI expects:
+         *
+         * audio: UploadFile
+         */
+
+        formData.append(
+          "audio",
+          audioBlob,
+          "recording.webm"
+        );
+
+
+        /*
+         * Call FastAPI:
+         *
+         * POST /stt/audio
+         */
+
+        const response =
+          await fetch(
+            "/stt/audio",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+
+        /*
+         * Check HTTP response.
+         */
+
+        if (!response.ok) {
+
+          const errorText =
+            await response.text();
+
+          throw new Error(
+            `STT request failed: ${response.status} ${errorText}`
+          );
+
+        }
+
+
+        /*
+         * Parse JSON.
+         *
+         * Expected:
+         *
+         * {
+         *   "success": true,
+         *   "transcript": "Hello"
+         * }
+         */
+
+        const data =
+          await response.json();
+
+
+        console.log(
+          "STT response:",
+          data
+        );
+
+
+        /*
+         * Get transcript.
+         */
+
+        const transcript =
+          data.transcript;
+
+
+        /*
+         * Display transcript.
+         */
+
+        transcriptElement.textContent =
+          transcript || "";
+
+
+        /*
+         * No speech.
+         */
+
+        if (
+          !transcript ||
+          !transcript.trim()
+        ) {
+
+          setStatus(
+            "No speech detected.",
+            "error"
+          );
+
+          return;
+
+        }
+
+
+        /*
+         * Send transcript to TTS.
+         */
+
+        await processTTS(
+          transcript
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "STT Error:",
+          error
+        );
+
+
+        setStatus(
+          "Speech-to-text failed.",
+          "error"
+        );
+
+      }
+
+    }
+
+
+    /*
+     * ============================
+     * TTS
+     * ============================
+     */
+
+    async function processTTS(
+      transcript
+    ) {
+
+      try {
+
+        setStatus(
+          '<span class="loading"></span>Generating voice response...'
+        );
+
+
+        /*
+         * Get selected voice.
+         */
+
+        const voiceName =
+          voiceSelect.value;
+
+
+        /*
+         * Build query parameters.
+         *
+         * Example:
+         *
+         * text=Hello
+         * voiceName=flux-hannah-en
+         */
+
+        const params =
+          new URLSearchParams({
+            text: transcript,
+            voiceName: voiceName
+          });
+
+
+        /*
+         * Call FastAPI:
+         *
+         * GET /tts/audio
+         */
+
+        const response =
+          await fetch(
+            `/tts/audio?${params.toString()}`,
+            {
+              method: "GET"
+            }
+          );
+
+
+        /*
+         * Check HTTP response.
+         */
+
+        if (!response.ok) {
+
+          const errorText =
+            await response.text();
+
+          throw new Error(
+            `TTS request failed: ${response.status} ${errorText}`
+          );
+
+        }
+
+
+        /*
+         * Get WAV audio.
+         */
+
+        const audioBlob =
+          await response.blob();
+
+
+        console.log(
+          "TTS audio:",
+          audioBlob
+        );
+
+
+        /*
+         * Display response text.
+         */
+
+        responseElement.textContent =
+          transcript;
+
+
+        /*
+         * Remove previous audio URL.
+         */
+
+        if (audioUrl) {
+
+          URL.revokeObjectURL(
+            audioUrl
+          );
+
+        }
+
+
+        /*
+         * Create object URL.
+         */
+
+        audioUrl =
+          URL.createObjectURL(
+            audioBlob
+          );
+
+
+        /*
+         * Set audio player source.
+         */
+
+        audioPlayer.src =
+          audioUrl;
+
+
+        /*
+         * Enable download.
+         */
+
+        downloadBtn.disabled =
+          false;
+
+
+        /*
+         * Play audio automatically.
+         */
+
+        try {
+
+          await audioPlayer.play();
+
+        }
+
+        catch (playError) {
+
+          console.warn(
+            "Autoplay was blocked:",
+            playError
+          );
+
+          /*
+           * Audio is still available
+           * in the audio player.
+           */
+
+        }
+
+
+        setStatus(
+          "Done — audio is ready.",
+          "success"
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "TTS Error:",
+          error
+        );
+
+
+        setStatus(
+          "Text-to-speech failed.",
+          "error"
+        );
+
+      }
+
+    }
+
+
+    /*
+     * ============================
+     * DOWNLOAD AUDIO
+     * ============================
+     */
+
+    downloadBtn.onclick = () => {
+
+      if (!audioUrl) {
+        return;
+      }
+
+
+      const link =
+        document.createElement("a");
+
+
+      link.href =
+        audioUrl;
+
+
+      link.download =
+        "speech.wav";
+
+
+      document.body.appendChild(
+        link
+      );
+
+
+      link.click();
+
+
+      document.body.removeChild(
+        link
+      );
+
+    };
+
+
+    /*
+     * ============================
+     * CLEANUP
+     * ============================
+     */
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+
+        if (audioUrl) {
+
+          URL.revokeObjectURL(
+            audioUrl
+          );
+
+        }
+
+        if (mediaStream) {
+
+          mediaStream
+            .getTracks()
+            .forEach(
+              (track) => {
+                track.stop();
+              }
+            );
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+
+</html>

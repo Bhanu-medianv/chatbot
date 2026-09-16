@@ -16,8 +16,8 @@ async def speech_to_text(
     audio: UploadFile = File(...),
 ):
     audio_data = await audio.read()
-
-    transcript = stt_service.speech_to_text(
+    
+    transcript = await stt_service.speech_to_text(
         audio_data,
     )
 

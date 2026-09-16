@@ -3,74 +3,39 @@
 
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Voice AI - STT + TTS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice AI — Realtime</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       min-height: 100vh;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
-      font-family:
-        Inter,
-        "Segoe UI",
-        system-ui,
-        sans-serif;
-
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
       background: #0f0f1a;
       color: #e2e2f0;
-
       padding: 20px;
     }
 
     .card {
       width: 550px;
       max-width: 100%;
-
       padding: 45px;
-
       text-align: center;
-
-      background:
-        rgba(255, 255, 255, 0.04);
-
-      border:
-        1px solid rgba(255, 255, 255, 0.08);
-
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
-
       backdrop-filter: blur(20px);
-
-      box-shadow:
-        0 8px 40px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
     }
 
     h1 {
       margin-bottom: 10px;
-
       font-size: 1.6rem;
-
-      background:
-        linear-gradient(
-          135deg,
-          #a78bfa,
-          #6366f1
-        );
-
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -81,1168 +46,367 @@
       font-size: 14px;
     }
 
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 25px;
-    }
+    .voice-container { text-align: left; margin-bottom: 25px; }
 
-    button {
-      padding: 13px 30px;
-
-      border: none;
-      border-radius: 12px;
-
-      font-size: 15px;
-      font-weight: 600;
-
-      cursor: pointer;
-
-      transition: 0.2s;
-    }
-
-    #startBtn {
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #6366f1,
-          #8b5cf6
-        );
-    }
-
-    #startBtn:hover:not(:disabled) {
-      transform: translateY(-2px);
-
-      box-shadow:
-        0 5px 20px
-        rgba(99, 102, 241, 0.4);
-    }
-
-    #stopBtn {
-      color: #c4b5fd;
-
-      background:
-        rgba(255, 255, 255, 0.08);
-
-      border:
-        1px solid
-        rgba(139, 92, 246, 0.3);
-    }
-
-    #stopBtn:hover:not(:disabled) {
-      background:
-        rgba(255, 255, 255, 0.12);
-    }
-
-    button:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-    }
-
-    .voice-container {
-      text-align: left;
-      margin-bottom: 25px;
-    }
-
-    .label {
-      font-size: 13px;
-      color: #8d8da5;
-      margin-bottom: 8px;
-    }
+    .label { font-size: 13px; color: #8d8da5; margin-bottom: 8px; }
 
     select {
       width: 100%;
-
       padding: 12px 15px;
-
       border-radius: 12px;
-
-      border:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
-      background:
-        rgba(255, 255, 255, 0.05);
-
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
       color: #e2e2f0;
-
       font-size: 14px;
-
       outline: none;
-
       cursor: pointer;
     }
 
-    select:focus {
-      border-color: #6366f1;
+    select:focus { border-color: #6366f1; }
+    select option { background: #1a1a2a; color: white; }
+
+    button {
+      padding: 13px 30px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
-    select option {
-      background: #1a1a2a;
+    #callBtn {
+      width: 100%;
       color: white;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
     }
 
-    .section {
-      text-align: left;
-      margin-top: 20px;
+    #callBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4); }
+
+    #callBtn.live {
+      color: #fecaca;
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.35);
     }
+
+    .section { text-align: left; margin-top: 20px; }
 
     .box {
       min-height: 80px;
-
       padding: 15px;
-
       border-radius: 12px;
-
-      background:
-        rgba(255, 255, 255, 0.05);
-
-      border:
-        1px solid
-        rgba(255, 255, 255, 0.08);
-
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: #d8d8e8;
-
       line-height: 1.5;
-
       word-break: break-word;
     }
 
-    #audioPlayer {
-      width: 100%;
-      margin-top: 20px;
-    }
+    .interim { color: #8888a0; }
 
-    #downloadBtn {
-      width: 100%;
-      margin-top: 12px;
-
-      color: #c4b5fd;
-
-      background:
-        rgba(255, 255, 255, 0.08);
-
-      border:
-        1px solid
-        rgba(139, 92, 246, 0.3);
-    }
-
-    #downloadBtn:hover:not(:disabled) {
-      background:
-        rgba(255, 255, 255, 0.12);
-    }
-
-    #status {
-      min-height: 25px;
-
-      margin-top: 25px;
-
-      color: #9999b0;
-
-      font-size: 14px;
-    }
-
-    #status.success {
-      color: #4ade80;
-    }
-
-    #status.error {
-      color: #f87171;
-    }
+    #status { min-height: 25px; margin-top: 25px; color: #9999b0; font-size: 14px; }
+    #status.success { color: #4ade80; }
+    #status.error { color: #f87171; }
 
     .pulse {
       display: inline-block;
-
-      width: 10px;
-      height: 10px;
-
+      width: 10px; height: 10px;
       margin-right: 8px;
-
       border-radius: 50%;
-
       background: #f87171;
-
-      animation:
-        pulse 1s infinite;
+      animation: pulse 1s infinite;
     }
 
     @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.4;
-        transform: scale(0.7);
-      }
-    }
-
-    .loading {
-      display: inline-block;
-
-      width: 12px;
-      height: 12px;
-
-      margin-right: 8px;
-
-      border:
-        2px solid
-        rgba(255, 255, 255, 0.3);
-
-      border-top-color: #a78bfa;
-
-      border-radius: 50%;
-
-      animation:
-        spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
     }
 
     @media (max-width: 600px) {
-      .card {
-        padding: 30px 20px;
-      }
-
-      .controls {
-        gap: 10px;
-      }
-
-      button {
-        padding: 12px 20px;
-      }
+      .card { padding: 30px 20px; }
     }
   </style>
-
 </head>
 
 <body>
 
   <div class="card">
 
-    <h1>
-      Voice AI
-    </h1>
-
-    <div class="description">
-      Speak → Speech to Text → Text to Speech
-    </div>
-
-
-    <!-- ========================= -->
-    <!-- TTS VOICE SELECTION -->
-    <!-- ========================= -->
+    <h1>Voice AI</h1>
+    <div class="description">Just talk — it answers while you listen.</div>
 
     <div class="voice-container">
-
-      <div class="label">
-        TTS Voice
-      </div>
-
-      <select id="voiceSelect">
-
-        <option value="flux-hannah-en">
-          Hannah
-        </option>
-
-        <option value="flux-kit-en">
-          Kit
-        </option>
-
-        <option value="flux-alexis-en">
-          Alexis
-        </option>
-
-        <option value="flux-cliff-en">
-          Cliff
-        </option>
-
-        <option value="flux-sienna-en">
-          Sienna
-        </option>
-
-        <option value="flux-cole-en">
-          Cole
-        </option>
-
-        <option value="flux-brooke-en">
-          Brooke
-        </option>
-
-        <option value="flux-colin-en">
-          Colin
-        </option>
-
-        <option value="flux-gemma-en">
-          Gemma
-        </option>
-
-        <option value="flux-haley-en">
-          Haley
-        </option>
-
-        <option value="flux-heather-en">
-          Heather
-        </option>
-
-        <option value="flux-miles-en">
-          Miles
-        </option>
-
-        <option value="flux-sean-en">
-          Sean
-        </option>
-
-        <option value="flux-bree-en">
-          Bree
-        </option>
-
-        <option value="flux-brittany-en">
-          Brittany
-        </option>
-
-        <option value="flux-bruce-en">
-          Bruce
-        </option>
-
-        <option value="flux-conor-en">
-          Conor
-        </option>
-
-        <option value="flux-donovan-en">
-          Donovan
-        </option>
-
-        <option value="flux-drew-en">
-          Drew
-        </option>
-
-        <option value="flux-elise-en">
-          Elise
-        </option>
-
-        <option value="flux-jack-en">
-          Jack
-        </option>
-
-        <option value="flux-kai-en">
-          Kai
-        </option>
-
-        <option value="flux-kelsey-en">
-          Kelsey
-        </option>
-
-        <option value="flux-maeve-en">
-          Maeve
-        </option>
-
-        <option value="flux-marcelo-en">
-          Marcelo
-        </option>
-
-        <option value="flux-marcus-en">
-          Marcus
-        </option>
-
-        <option value="flux-meena-en">
-          Meena
-        </option>
-
-        <option value="flux-meghan-en">
-          Meghan
-        </option>
-
-        <option value="flux-naveen-en">
-          Naveen
-        </option>
-
-        <option value="flux-paige-en">
-          Paige
-        </option>
-
-        <option value="flux-priya-en">
-          Priya
-        </option>
-
-        <option value="flux-rufus-en">
-          Rufus
-        </option>
-
-        <option value="flux-sharon-en">
-          Sharon
-        </option>
-
-        <option value="flux-tanner-en">
-          Tanner
-        </option>
-
-        <option value="flux-wade-en">
-          Wade
-        </option>
-
-        <option value="flux-wes-en">
-          Wes
-        </option>
-
-      </select>
-
+      <div class="label">Voice</div>
+      <select id="voiceSelect"></select>
     </div>
 
-
-    <!-- ========================= -->
-    <!-- RECORDING CONTROLS -->
-    <!-- ========================= -->
-
-    <div class="controls">
-
-      <button id="startBtn">
-        🎙 Start
-      </button>
-
-      <button
-        id="stopBtn"
-        disabled
-      >
-        ⏹ Stop
-      </button>
-
-    </div>
-
-
-    <!-- ========================= -->
-    <!-- TRANSCRIPT -->
-    <!-- ========================= -->
+    <button id="callBtn">Start talking</button>
 
     <div class="section">
-
-      <div class="label">
-        Transcript
-      </div>
-
-      <div
-        id="transcript"
-        class="box"
-      >
-        Your transcript will appear here...
-      </div>
-
+      <div class="label">You</div>
+      <div id="transcript" class="box">Your words appear here as you speak…</div>
     </div>
-
-
-    <!-- ========================= -->
-    <!-- AI RESPONSE -->
-    <!-- ========================= -->
 
     <div class="section">
-
-      <div class="label">
-        AI Response
-      </div>
-
-      <div
-        id="response"
-        class="box"
-      >
-        The response will appear here...
-      </div>
-
+      <div class="label">Assistant</div>
+      <div id="response" class="box">The answer streams in here…</div>
     </div>
 
-
-    <!-- ========================= -->
-    <!-- AUDIO PLAYER -->
-    <!-- ========================= -->
-
-    <audio
-      id="audioPlayer"
-      controls
-    ></audio>
-
-
-    <!-- ========================= -->
-    <!-- DOWNLOAD -->
-    <!-- ========================= -->
-
-    <button
-      id="downloadBtn"
-      disabled
-    >
-      Download Audio
-    </button>
-
-
-    <!-- ========================= -->
-    <!-- STATUS -->
-    <!-- ========================= -->
-
-    <div id="status">
-      Ready
-    </div>
+    <div id="status">Not connected</div>
 
   </div>
 
-
   <script>
+    const callBtn = document.getElementById("callBtn");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const transcriptEl = document.getElementById("transcript");
+    const responseEl = document.getElementById("response");
+    const statusEl = document.getElementById("status");
 
-    /*
-     * ============================
-     * DOM ELEMENTS
-     * ============================
-     */
+    const FALLBACK_VOICES = ["flux-hannah-en", "flux-kit-en", "flux-alexis-en", "flux-cliff-en"];
 
-    const startBtn =
-      document.getElementById("startBtn");
+    let ws = null;
+    let micStream = null;
+    let micCtx = null;
+    let playCtx = null;
 
-    const stopBtn =
-      document.getElementById("stopBtn");
+    let ttsRate = 24000;
+    let nextTime = 0;
+    let sources = [];
+    let carry = new Uint8Array(0);
 
-    const voiceSelect =
-      document.getElementById("voiceSelect");
+    let finalText = "";
+    let answerText = "";
 
-    const transcriptElement =
-      document.getElementById("transcript");
-
-    const responseElement =
-      document.getElementById("response");
-
-    const audioPlayer =
-      document.getElementById("audioPlayer");
-
-    const downloadBtn =
-      document.getElementById("downloadBtn");
-
-    const status =
-      document.getElementById("status");
-
-
-    /*
-     * ============================
-     * STATE
-     * ============================
-     */
-
-    let recorder = null;
-
-    let mediaStream = null;
-
-    let chunks = [];
-
-    let audioUrl = null;
-
-
-    /*
-     * ============================
-     * STATUS
-     * ============================
-     */
-
-    function setStatus(
-      message,
-      type = ""
-    ) {
-
-      status.className = type;
-
-      status.innerHTML = message;
-
+    function setStatus(html, type = "") {
+      statusEl.className = type;
+      statusEl.innerHTML = html;
     }
 
+    function fillVoices(list) {
+      voiceSelect.innerHTML = "";
+      list.forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v.replace("flux-", "").replace("-en", "");
+        opt.textContent = opt.textContent[0].toUpperCase() + opt.textContent.slice(1);
+        voiceSelect.appendChild(opt);
+      });
+    }
 
-    /*
-     * ============================
-     * START RECORDING
-     * ============================
-     */
+    fillVoices(FALLBACK_VOICES);
 
-    startBtn.onclick = async () => {
-
-      try {
-
-        /*
-         * Ask browser for microphone.
-         */
-
-        mediaStream =
-          await navigator
-            .mediaDevices
-            .getUserMedia({
-              audio: true
-            });
-
-
-        /*
-         * Clear previous recording.
-         */
-
-        chunks = [];
-
-
-        /*
-         * Create MediaRecorder.
-         */
-
-        recorder =
-          new MediaRecorder(
-            mediaStream
-          );
-
-
-        /*
-         * Receive recorded audio chunks.
-         */
-
-        recorder.ondataavailable =
-          (event) => {
-
-            if (
-              event.data &&
-              event.data.size > 0
-            ) {
-
-              chunks.push(
-                event.data
-              );
-
-            }
-
-          };
-
-
-        /*
-         * When recording stops.
-         */
-
-        recorder.onstop =
-          async () => {
-
-            /*
-             * Stop microphone.
-             */
-
-            if (mediaStream) {
-
-              mediaStream
-                .getTracks()
-                .forEach(
-                  (track) => {
-                    track.stop();
-                  }
-                );
-
-            }
-
-
-            /*
-             * Create audio Blob.
-             */
-
-            const audioBlob =
-              new Blob(
-                chunks,
-                {
-                  type:
-                    recorder.mimeType ||
-                    "audio/webm"
-                }
-              );
-
-
-            /*
-             * Send audio to STT.
-             */
-
-            await processAudio(
-              audioBlob
-            );
-
-          };
-
-
-        /*
-         * Start recording.
-         */
-
-        recorder.start();
-
-
-        startBtn.disabled = true;
-
-        stopBtn.disabled = false;
-
-
-        setStatus(
-          '<span class="pulse"></span>Recording...'
-        );
-
+    voiceSelect.onchange = () => {
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: "config", voice: voiceSelect.value }));
       }
-
-      catch (error) {
-
-        console.error(
-          "Microphone Error:",
-          error
-        );
-
-        setStatus(
-          "Microphone permission denied or unavailable.",
-          "error"
-        );
-
-      }
-
     };
 
+    /* ---------- mic capture: 16 kHz PCM16 straight to the socket ---------- */
 
-    /*
-     * ============================
-     * STOP RECORDING
-     * ============================
-     */
+    const workletSource = `
+      class PCMProcessor extends AudioWorkletProcessor {
+        process(inputs) {
+          const ch = inputs[0] && inputs[0][0];
+          if (ch) {
+            const out = new Int16Array(ch.length);
+            for (let i = 0; i < ch.length; i++) {
+              const s = Math.max(-1, Math.min(1, ch[i]));
+              out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+            }
+            this.port.postMessage(out.buffer, [out.buffer]);
+          }
+          return true;
+        }
+      }
+      registerProcessor('pcm-processor', PCMProcessor);
+    `;
 
-    stopBtn.onclick = () => {
+    async function startMic() {
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
 
-      if (
-        !recorder ||
-        recorder.state === "inactive"
-      ) {
-        return;
+      micCtx = new AudioContext({ sampleRate: 16000 });
+
+      const url = URL.createObjectURL(
+        new Blob([workletSource], { type: "application/javascript" })
+      );
+      await micCtx.audioWorklet.addModule(url);
+      URL.revokeObjectURL(url);
+
+      const source = micCtx.createMediaStreamSource(micStream);
+      const node = new AudioWorkletNode(micCtx, "pcm-processor");
+      const silent = micCtx.createGain();
+      silent.gain.value = 0;
+
+      node.port.onmessage = (event) => {
+        if (ws && ws.readyState === 1) ws.send(event.data);
+      };
+
+      source.connect(node);
+      node.connect(silent);
+      silent.connect(micCtx.destination);
+    }
+
+    /* ---------- playback: schedule PCM chunks back to back ---------- */
+
+    function enqueueAudio(arrayBuffer) {
+      let bytes = new Uint8Array(arrayBuffer);
+
+      if (carry.length) {
+        const merged = new Uint8Array(carry.length + bytes.length);
+        merged.set(carry);
+        merged.set(bytes, carry.length);
+        bytes = merged;
+        carry = new Uint8Array(0);
       }
 
+      const usable = bytes.length - (bytes.length % 2);
+      if (usable < bytes.length) carry = bytes.slice(usable);
+      if (!usable) return;
 
-      recorder.stop();
-
-
-      startBtn.disabled = false;
-
-      stopBtn.disabled = true;
-
-
-      setStatus(
-        '<span class="loading"></span>Processing audio...'
+      const pcm = new Int16Array(
+        bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + usable)
       );
 
-    };
+      const buffer = playCtx.createBuffer(1, pcm.length, ttsRate);
+      const channel = buffer.getChannelData(0);
+      for (let i = 0; i < pcm.length; i++) channel[i] = pcm[i] / 32768;
 
+      const node = playCtx.createBufferSource();
+      node.buffer = buffer;
+      node.connect(playCtx.destination);
 
-    /*
-     * ============================
-     * STT
-     * ============================
-     */
+      const now = playCtx.currentTime;
+      if (nextTime < now + 0.06) nextTime = now + 0.06;
 
-    async function processAudio(
-      audioBlob
-    ) {
+      node.start(nextTime);
+      nextTime += buffer.duration;
 
-      try {
+      sources.push(node);
+      node.onended = () => { sources = sources.filter((s) => s !== node); };
+    }
 
-        setStatus(
-          '<span class="loading"></span>Converting speech to text...'
-        );
+    function stopPlayback() {
+      sources.forEach((s) => { try { s.stop(); } catch (e) {} });
+      sources = [];
+      nextTime = 0;
+      carry = new Uint8Array(0);
+    }
 
+    /* ---------- socket ---------- */
 
-        /*
-         * Create FormData.
-         */
+    function connect() {
+      const scheme = location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(`${scheme}://${location.host}/ws/voice`);
+      ws.binaryType = "arraybuffer";
 
-        const formData =
-          new FormData();
+      ws.onopen = () => {
+        setStatus('<span class="pulse"></span>Listening — start talking');
+      };
 
-
-        /*
-         * FastAPI expects:
-         *
-         * audio: UploadFile
-         */
-
-        formData.append(
-          "audio",
-          audioBlob,
-          "recording.webm"
-        );
-
-
-        /*
-         * Call FastAPI:
-         *
-         * POST /stt/audio
-         */
-
-        const response =
-          await fetch(
-            "/stt/audio",
-            {
-              method: "POST",
-              body: formData
-            }
-          );
-
-
-        /*
-         * Check HTTP response.
-         */
-
-        if (!response.ok) {
-
-          const errorText =
-            await response.text();
-
-          throw new Error(
-            `STT request failed: ${response.status} ${errorText}`
-          );
-
-        }
-
-
-        /*
-         * Parse JSON.
-         *
-         * Expected:
-         *
-         * {
-         *   "success": true,
-         *   "transcript": "Hello"
-         * }
-         */
-
-        const data =
-          await response.json();
-
-
-        console.log(
-          "STT response:",
-          data
-        );
-
-
-        /*
-         * Get transcript.
-         */
-
-        const transcript =
-          data.transcript;
-
-
-        /*
-         * Display transcript.
-         */
-
-        transcriptElement.textContent =
-          transcript || "";
-
-
-        /*
-         * No speech.
-         */
-
-        if (
-          !transcript ||
-          !transcript.trim()
-        ) {
-
-          setStatus(
-            "No speech detected.",
-            "error"
-          );
-
+      ws.onmessage = (event) => {
+        if (typeof event.data !== "string") {
+          enqueueAudio(event.data);
           return;
-
         }
 
+        const msg = JSON.parse(event.data);
 
-        /*
-         * Send transcript to TTS.
-         */
+        if (msg.type === "ready") {
+          ttsRate = msg.ttsSampleRate || ttsRate;
+          if (msg.voices && msg.voices.length) {
+            const current = voiceSelect.value;
+            fillVoices(msg.voices);
+            voiceSelect.value = msg.voices.includes(current) ? current : msg.voices[0];
+          }
+          ws.send(JSON.stringify({ type: "config", voice: voiceSelect.value }));
+        }
 
-        await processTTS(
-          transcript
-        );
+        else if (msg.type === "transcript") {
+          if (msg.final) {
+            finalText = (finalText + " " + msg.text).trim();
+            transcriptEl.textContent = finalText;
+          } else {
+            transcriptEl.innerHTML =
+              finalText + ' <span class="interim">' + msg.text + "</span>";
+          }
+        }
 
-      }
+        else if (msg.type === "user") {
+          finalText = "";
+          transcriptEl.textContent = msg.text;
+          setStatus('<span class="pulse"></span>Thinking…');
+        }
 
-      catch (error) {
+        else if (msg.type === "answer_start") {
+          answerText = "";
+          responseEl.textContent = "";
+        }
 
-        console.error(
-          "STT Error:",
-          error
-        );
+        else if (msg.type === "token") {
+          answerText += msg.text;
+          responseEl.textContent = answerText;
+        }
 
+        else if (msg.type === "answer_end") {
+          setStatus('<span class="pulse"></span>Listening — start talking');
+        }
 
-        setStatus(
-          "Speech-to-text failed.",
-          "error"
-        );
+        else if (msg.type === "interrupt") {
+          stopPlayback();
+        }
 
-      }
+        else if (msg.type === "error") {
+          setStatus("Something went wrong: " + msg.message, "error");
+        }
+      };
 
+      ws.onerror = () => setStatus("Connection failed. Check the server is running.", "error");
+      ws.onclose = () => { if (micStream) hangUp(); };
     }
 
-
-    /*
-     * ============================
-     * TTS
-     * ============================
-     */
-
-    async function processTTS(
-      transcript
-    ) {
-
+    async function startCall() {
       try {
+        playCtx = new AudioContext();
+        await playCtx.resume();
+        await startMic();
+        connect();
 
-        setStatus(
-          '<span class="loading"></span>Generating voice response...'
-        );
-
-
-        /*
-         * Get selected voice.
-         */
-
-        const voiceName =
-          voiceSelect.value;
-
-
-        /*
-         * Build query parameters.
-         *
-         * Example:
-         *
-         * text=Hello
-         * voiceName=flux-hannah-en
-         */
-
-        const params =
-          new URLSearchParams({
-            text: transcript,
-            voiceName: voiceName
-          });
-
-
-        /*
-         * Call FastAPI:
-         *
-         * GET /tts/audio
-         */
-
-        const response =
-          await fetch(
-            `/tts/audio?${params.toString()}`,
-            {
-              method: "GET"
-            }
-          );
-
-
-        /*
-         * Check HTTP response.
-         */
-
-        if (!response.ok) {
-
-          const errorText =
-            await response.text();
-
-          throw new Error(
-            `TTS request failed: ${response.status} ${errorText}`
-          );
-
-        }
-
-
-        /*
-         * Get WAV audio.
-         */
-
-        const audioBlob =
-          await response.blob();
-
-
-        console.log(
-          "TTS audio:",
-          audioBlob
-        );
-
-
-        /*
-         * Display response text.
-         */
-
-        responseElement.textContent =
-          transcript;
-
-
-        /*
-         * Remove previous audio URL.
-         */
-
-        if (audioUrl) {
-
-          URL.revokeObjectURL(
-            audioUrl
-          );
-
-        }
-
-
-        /*
-         * Create object URL.
-         */
-
-        audioUrl =
-          URL.createObjectURL(
-            audioBlob
-          );
-
-
-        /*
-         * Set audio player source.
-         */
-
-        audioPlayer.src =
-          audioUrl;
-
-
-        /*
-         * Enable download.
-         */
-
-        downloadBtn.disabled =
-          false;
-
-
-        /*
-         * Play audio automatically.
-         */
-
-        try {
-
-          await audioPlayer.play();
-
-        }
-
-        catch (playError) {
-
-          console.warn(
-            "Autoplay was blocked:",
-            playError
-          );
-
-          /*
-           * Audio is still available
-           * in the audio player.
-           */
-
-        }
-
-
-        setStatus(
-          "Done — audio is ready.",
-          "success"
-        );
-
+        callBtn.textContent = "Stop";
+        callBtn.classList.add("live");
+      } catch (error) {
+        console.error(error);
+        setStatus("Microphone permission denied or unavailable.", "error");
       }
-
-      catch (error) {
-
-        console.error(
-          "TTS Error:",
-          error
-        );
-
-
-        setStatus(
-          "Text-to-speech failed.",
-          "error"
-        );
-
-      }
-
     }
 
+    function hangUp() {
+      stopPlayback();
 
-    /*
-     * ============================
-     * DOWNLOAD AUDIO
-     * ============================
-     */
+      if (ws && ws.readyState === 1) ws.close();
+      ws = null;
 
-    downloadBtn.onclick = () => {
+      if (micStream) micStream.getTracks().forEach((t) => t.stop());
+      micStream = null;
 
-      if (!audioUrl) {
-        return;
-      }
+      if (micCtx) micCtx.close();
+      micCtx = null;
 
+      callBtn.textContent = "Start talking";
+      callBtn.classList.remove("live");
+      setStatus("Not connected");
+    }
 
-      const link =
-        document.createElement("a");
+    callBtn.onclick = () => (micStream ? hangUp() : startCall());
 
-
-      link.href =
-        audioUrl;
-
-
-      link.download =
-        "speech.wav";
-
-
-      document.body.appendChild(
-        link
-      );
-
-
-      link.click();
-
-
-      document.body.removeChild(
-        link
-      );
-
-    };
-
-
-    /*
-     * ============================
-     * CLEANUP
-     * ============================
-     */
-
-    window.addEventListener(
-      "beforeunload",
-      () => {
-
-        if (audioUrl) {
-
-          URL.revokeObjectURL(
-            audioUrl
-          );
-
-        }
-
-        if (mediaStream) {
-
-          mediaStream
-            .getTracks()
-            .forEach(
-              (track) => {
-                track.stop();
-              }
-            );
-
-        }
-
-      }
-    );
-
+    window.addEventListener("beforeunload", hangUp);
   </script>
 
 </body>

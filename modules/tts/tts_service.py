@@ -1,4 +1,3 @@
-
 import os
 
 from dotenv import load_dotenv
@@ -8,43 +7,20 @@ from deepgram import DeepgramClient
 load_dotenv()
 
 
+# Raw PCM out, so the browser can start playing before the sentence is finished.
+SAMPLE_RATE = 24000
+
+
 VOICES = [
-    "flux-hannah-en",
-    "flux-kit-en",
-    "flux-alexis-en",
-    "flux-cliff-en",
-    "flux-sienna-en",
-    "flux-cole-en",
-    "flux-brooke-en",
-    "flux-colin-en",
-    "flux-gemma-en",
-    "flux-haley-en",
-    "flux-heather-en",
-    "flux-miles-en",
-    "flux-sean-en",
-    "flux-bree-en",
-    "flux-brittany-en",
-    "flux-bruce-en",
-    "flux-conor-en",
-    "flux-donovan-en",
-    "flux-drew-en",
-    "flux-elise-en",
-    "flux-jack-en",
-    "flux-kai-en",
-    "flux-kelsey-en",
-    "flux-maeve-en",
-    "flux-marcelo-en",
-    "flux-marcus-en",
-    "flux-meena-en",
-    "flux-meghan-en",
-    "flux-naveen-en",
-    "flux-paige-en",
-    "flux-priya-en",
-    "flux-rufus-en",
-    "flux-sharon-en",
-    "flux-tanner-en",
-    "flux-wade-en",
-    "flux-wes-en",
+    "flux-hannah-en", "flux-kit-en", "flux-alexis-en", "flux-cliff-en",
+    "flux-sienna-en", "flux-cole-en", "flux-brooke-en", "flux-colin-en",
+    "flux-gemma-en", "flux-haley-en", "flux-heather-en", "flux-miles-en",
+    "flux-sean-en", "flux-bree-en", "flux-brittany-en", "flux-bruce-en",
+    "flux-conor-en", "flux-donovan-en", "flux-drew-en", "flux-elise-en",
+    "flux-jack-en", "flux-kai-en", "flux-kelsey-en", "flux-maeve-en",
+    "flux-marcelo-en", "flux-marcus-en", "flux-meena-en", "flux-meghan-en",
+    "flux-naveen-en", "flux-paige-en", "flux-priya-en", "flux-rufus-en",
+    "flux-sharon-en", "flux-tanner-en", "flux-wade-en", "flux-wes-en",
 ]
 
 
@@ -54,59 +30,83 @@ class TtsService:
         api_key = os.getenv("DEEPGRAM_API_KEY")
 
         if not api_key:
-            raise ValueError(
-                "DEEPGRAM_API_KEY is not configured"
-            )
+            raise ValueError("DEEPGRAM_API_KEY is not configured")
 
-        self.client = DeepgramClient(
-            api_key=api_key
-        )
+        self.client = DeepgramClient(api_key=api_key)
 
-    def text_to_speech(self, text: str, voice: str) -> bytes:
-        if not text:
+        # Set once we know which kwargs this account/SDK actually accepts.
+        self._raw_pcm_supported = None
+
+    def _validate(self, text: str, voice: str):
+        if not text or not text.strip():
             raise ValueError("Text is required")
-
-        if not voice:
-            raise ValueError("Voice is required")
 
         if voice not in VOICES:
             raise ValueError(f"Invalid voice: {voice}")
 
-        print("Text:", text)
-        print("Voice:", voice)
-
-        try:
-            response = (
-                self.client
-                .speak
-                .v2
-                .audio
-                .generate(
-                    text=text,
-                    model=voice,
-                    encoding="linear16",
-                    container="wav",
-                )
+    def _generate(self, text: str, voice: str, raw: bool):
+        if raw:
+            return self.client.speak.v2.audio.generate(
+                text=text,
+                model=voice,
+                encoding="linear16",
+                sample_rate=SAMPLE_RATE,
+                container="none",
             )
 
-            # Deepgram returns a generator directly
-            chunks = []
+        return self.client.speak.v2.audio.generate(
+            text=text,
+            model=voice,
+            encoding="linear16",
+            container="wav",
+        )
 
-            for chunk in response:
-                if chunk:
-                    chunks.append(chunk)
+    def stream(self, text: str, voice: str):
+        """Blocking generator of linear16 chunks.
 
-            audio = b"".join(chunks)
+        Falls back to a WAV container if raw PCM is rejected; the caller strips
+        the 44-byte header off the first chunk either way.
+        """
 
-            print("Total audio bytes:", len(audio))
+        self._validate(text, voice)
 
-            if not audio:
-                raise RuntimeError(
-                    "Deepgram returned no audio data"
-                )
+        if self._raw_pcm_supported is None:
+            try:
+                response = self._generate(text, voice, raw=True)
+                iterator = iter(response)
+                first = next(iterator)
 
-            return audio
+                self._raw_pcm_supported = True
 
-        except Exception as error:
-            print("Deepgram TTS Error:", error)
-            raise
+                if first:
+                    yield first
+
+                for chunk in iterator:
+                    if chunk:
+                        yield chunk
+
+                return
+            except StopIteration:
+                self._raw_pcm_supported = True
+                return
+            except Exception as error:
+                print("Deepgram rejected raw PCM, falling back to WAV:", error)
+                self._raw_pcm_supported = False
+
+        for chunk in self._generate(text, voice, raw=self._raw_pcm_supported):
+            if chunk:
+                yield chunk
+
+    def text_to_speech(self, text: str, voice: str) -> bytes:
+        """Full WAV, kept for the old REST route."""
+
+        self._validate(text, voice)
+
+        audio = b"".join(
+            chunk for chunk in self._generate(text, voice, raw=False) if chunk
+        )
+        
+        if not audio:
+            raise RuntimeError("Deepgram returned no audio data")
+
+        return audio

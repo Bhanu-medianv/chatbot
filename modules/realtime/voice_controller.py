@@ -47,6 +47,11 @@ DEEPGRAM_LISTEN_URL = "wss://api.deepgram.com/v1/listen?" + urlencode(
     }
 )
 
+GREETING_TEXT = (
+    "Hi, thanks for calling our dental clinic. "
+    "I can help with appointments or questions about the clinic. "
+    "How can I help you today?"
+)
 
 SENTENCE_END = re.compile(r"[\.\!\?](?=\s|$)")
 
@@ -274,6 +279,35 @@ class VoiceSession:
             except Exception:
                 pass
 
+    async def send_greeting(self):
+        """Speak a fixed welcome message as soon as the call connects."""
+
+        started = time.perf_counter()
+
+        def elapsed():
+            return f"{time.perf_counter() - started:.2f}s"
+
+        try:
+            print("[turn] greeting")
+
+            await self.ws.send_json({"type": "answer_start"})
+            await self.ws.send_json({"type": "token", "text": GREETING_TEXT})
+            await self.speak(GREETING_TEXT, elapsed)
+
+            self.history.append(("ai", GREETING_TEXT))
+
+            await self.ws.send_json({"type": "answer_end"})
+
+            print(f"[turn] greeting done at {elapsed()}")
+
+        except Exception as error:
+            print(f"[turn] greeting failed at {elapsed()}: {error!r}")
+
+            try:
+                await self.ws.send_json({"type": "answer_end"})
+            except Exception:
+                pass
+    
     async def speak(self, text: str, elapsed):
         """Stream one chunk of TTS audio to the browser."""
 
@@ -352,6 +386,9 @@ async def voice_socket(ws: WebSocket):
         asyncio.create_task(session.pump_deepgram()),
         asyncio.create_task(session.keepalive()),
     ]
+     # Runs once and finishes on its own — must not be in the FIRST_COMPLETED
+    # race above, or the session tears down the instant the greeting ends.
+    asyncio.create_task(session.send_greeting())
 
     try:
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
